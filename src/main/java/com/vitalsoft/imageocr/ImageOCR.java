@@ -17,7 +17,7 @@ package com.vitalsoft.imageocr;
 public class ImageOCR {
 
     public static void main(String[] args) {
-        System.out.println("Hello World!");
+        System.out.println("Hello World!");//intentional boot message
         new MainApplication().createAndShowGui();
     }
 }

@@ -162,7 +162,7 @@ public class MainApplication {
         int res = fc.showOpenDialog(frame);
         if (res == JFileChooser.APPROVE_OPTION) {
             File dir = fc.getSelectedFile();
-            //TESSDATA_PATH = dir.getPath();
+            currentDir = dir;
             statusLabel.setText("Selected: " + dir.getAbsolutePath());
             // if not indexed, start indexing, else show existing thumbnails and check for changes
             if (!indexManager.isIndexed(dir)) {
@@ -176,7 +176,7 @@ public class MainApplication {
         }
     }
 
-    private void findTessDir() {
+    /*private void findTessDir() {
         JFileChooser fc = new JFileChooser();
         fc.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
         int res = fc.showOpenDialog(frame);
@@ -194,7 +194,7 @@ public class MainApplication {
                 SwingUtilities.invokeLater(() -> loadAllFromIndex(dir));
             }
         }
-    }
+    }*/
 
     private void startIndexing(File dir, boolean forceReindex) {
         // start background worker
