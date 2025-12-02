@@ -8,8 +8,7 @@ package com.vitalsoft.imageocr;
     The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
 
     THE SOFTWARE IS PROVIDED “AS IS”, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-*/
-
+ */
 import net.sourceforge.tess4j.ITesseract;
 import net.sourceforge.tess4j.Tesseract;
 import org.apache.lucene.analysis.standard.StandardAnalyzer;
@@ -38,20 +37,20 @@ import org.apache.lucene.store.Directory;
 /**
  * MainApp - Swing-based image search UI + background indexer (incremental).
  *
- * Notes:
- * - Configure tessdataPath variable below if needed, otherwise uses "tessdata" in working dir.
- * - Index storage root: ./storage/indexes/<folderId>
+ * Notes: - Configure tessdataPath variable below if needed, otherwise uses
+ * "tessdata" in working dir. - Index storage root: ./storage/indexes/<folderId>
  */
 public class MainApplication {
 
     // config
     private static final String STORAGE_ROOT = "storage";
     private static final String INDEXES_DIRNAME = "indexes";
-    private static final String TESSDATA_PATH = "/usr/share/tesseract-ocr/5/tessdata"; // change this if your tessdata is elsewhere
+    private static final String TESSDATA_PATH = "tessdata"; // change this if your tessdata is elsewhere
+    //private static final String TESSDATA_PATH = "/usr/share/tesseract-ocr/5/tessdata"; // change this if your tessdata is elsewhere
     private static final String TESS_LANG = "eng";
 
     // supported image extensions
-    private static final Set<String> IMG_EXT = Set.of("png","jpg","jpeg","bmp","gif","tif","tiff","webp");
+    private static final Set<String> IMG_EXT = Set.of("png", "jpg", "jpeg", "bmp", "gif", "tif", "tiff", "webp");
 
     // UI
     private JFrame frame;
@@ -95,7 +94,7 @@ public class MainApplication {
         actionBar.add(chooseDirBtn, BorderLayout.WEST);
 
         // Center: search field
-        JPanel centerBox = new JPanel(new BorderLayout(6,6));
+        JPanel centerBox = new JPanel(new BorderLayout(6, 6));
         searchField = new JTextField();
         searchField.setToolTipText("Type search and press Enter to search OCRed text in images");
         searchField.addActionListener(e -> performSearch());
@@ -110,6 +109,10 @@ public class MainApplication {
                 JOptionPane.showMessageDialog(frame, "Choose a folder first.");
             }
         });
+        JButton tessDirBtn = new JButton("Find Tess");
+        tessDirBtn.addActionListener(e -> {
+
+        });
         centerBox.add(reindexBtn, BorderLayout.EAST);
 
         actionBar.add(centerBox, BorderLayout.CENTER);
@@ -118,7 +121,7 @@ public class MainApplication {
 
         // wide progress bar just below action bar
         JPanel progressPanel = new JPanel(new BorderLayout());
-        progressPanel.setBorder(new EmptyBorder(0,10,10,10));
+        progressPanel.setBorder(new EmptyBorder(0, 10, 10, 10));
         progressBar = new JProgressBar(0, 100);
         progressBar.setStringPainted(true);
         statusLabel = new JLabel("Ready");
@@ -135,14 +138,18 @@ public class MainApplication {
 
         // bottom small help text
         JLabel hint = new JLabel("Single-click: quick preview (borderless). Double-click: open in system viewer.");
-        hint.setBorder(new EmptyBorder(6,10,10,10));
+        hint.setBorder(new EmptyBorder(6, 10, 10, 10));
         frame.getContentPane().add(hint, BorderLayout.SOUTH);
 
         // ensure storage dirs exist
         File storageRoot = new File(STORAGE_ROOT);
-        if (!storageRoot.exists()) storageRoot.mkdirs();
+        if (!storageRoot.exists()) {
+            storageRoot.mkdirs();
+        }
         File idxRoot = new File(storageRoot, INDEXES_DIRNAME);
-        if (!idxRoot.exists()) idxRoot.mkdirs();
+        if (!idxRoot.exists()) {
+            idxRoot.mkdirs();
+        }
 
         indexManager = new IndexManager(storageRoot);
 
@@ -150,6 +157,26 @@ public class MainApplication {
     }
 
     private void chooseFolder() {
+        JFileChooser fc = new JFileChooser();
+        fc.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
+        int res = fc.showOpenDialog(frame);
+        if (res == JFileChooser.APPROVE_OPTION) {
+            File dir = fc.getSelectedFile();
+            //TESSDATA_PATH = dir.getPath();
+            statusLabel.setText("Selected: " + dir.getAbsolutePath());
+            // if not indexed, start indexing, else show existing thumbnails and check for changes
+            if (!indexManager.isIndexed(dir)) {
+                startIndexing(dir, false);
+            } else {
+                // index exists -> do incremental update check and reindex new files automatically
+                startIndexing(dir, false);
+                // then load previews
+                SwingUtilities.invokeLater(() -> loadAllFromIndex(dir));
+            }
+        }
+    }
+
+    private void findTessDir() {
         JFileChooser fc = new JFileChooser();
         fc.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
         int res = fc.showOpenDialog(frame);
@@ -201,8 +228,11 @@ public class MainApplication {
     private void performSearch() {
         String q = searchField.getText().trim();
         if (q.isEmpty()) {
-            if (currentDir != null) loadAllFromIndex(currentDir);
-            else JOptionPane.showMessageDialog(frame, "Choose a folder first.");
+            if (currentDir != null) {
+                loadAllFromIndex(currentDir);
+            } else {
+                JOptionPane.showMessageDialog(frame, "Choose a folder first.");
+            }
             return;
         }
         if (!indexManager.isIndexed(currentDir)) {
@@ -220,7 +250,9 @@ public class MainApplication {
     }
 
     private void loadAllFromIndex(File dir) {
-        if (dir == null) return;
+        if (dir == null) {
+            return;
+        }
         try {
             List<String> hits = indexManager.search(dir, "*", MAX_RESULTS); // wildcard - returns many
             showSearchResults(hits);
@@ -235,7 +267,7 @@ public class MainApplication {
         gridPanel.removeAll();
         if (imagePaths == null || imagePaths.isEmpty()) {
             JLabel none = new JLabel("No images found.");
-            none.setBorder(new EmptyBorder(40,40,40,40));
+            none.setBorder(new EmptyBorder(40, 40, 40, 40));
             gridPanel.add(none);
             gridPanel.revalidate();
             gridPanel.repaint();
@@ -245,7 +277,9 @@ public class MainApplication {
         for (String path : imagePaths) {
             try {
                 File f = new File(path);
-                if (!f.exists()) continue;
+                if (!f.exists()) {
+                    continue;
+                }
                 ImageIcon icon = new ImageIcon(path);
                 Image scaled = icon.getImage().getScaledInstance(180, -1, Image.SCALE_SMOOTH);
                 JLabel thumb = new JLabel(new ImageIcon(scaled));
@@ -254,12 +288,15 @@ public class MainApplication {
                 thumb.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
                 thumb.addMouseListener(new MouseAdapter() {
                     private long lastClickTime = 0;
+
                     @Override
                     public void mouseClicked(MouseEvent e) {
                         long now = System.currentTimeMillis();
                         if (now - lastClickTime < 400) {
                             // double-click
-                            try { Desktop.getDesktop().open(f); } catch (Exception ex) {
+                            try {
+                                Desktop.getDesktop().open(f);
+                            } catch (Exception ex) {
                                 JOptionPane.showMessageDialog(frame, "Cannot open with system viewer: " + ex.getMessage());
                             }
                         } else {
@@ -305,12 +342,11 @@ public class MainApplication {
             imageLabel.setIcon(new ImageIcon(icon.getImage().getScaledInstance(-1, 560, Image.SCALE_SMOOTH)));
             JScrollPane imgScroll = new JScrollPane(imageLabel);
             split.setLeftComponent(imgScroll);
-            
+
         } catch (IOException ioe) {
             split.setLeftComponent(new JLabel("Unable to load image."));
         }
 
-        
         String extracted = indexManager.getExtractedTextForPath(imageFile.getAbsolutePath());
         ImageViewerWindow imageViewerWindow = new ImageViewerWindow(mImg, extracted);
         JTextArea textArea = new JTextArea(extracted != null ? extracted : "(no OCR text available)");
@@ -321,9 +357,12 @@ public class MainApplication {
         dlg.add(split, BorderLayout.CENTER);
 
         // quick close on Escape or click outside
-        dlg.addKeyListener(new KeyAdapter(){
-            @Override public void keyPressed(KeyEvent e) {
-                if (e.getKeyCode() == KeyEvent.VK_ESCAPE) dlg.dispose();
+        dlg.addKeyListener(new KeyAdapter() {
+            @Override
+            public void keyPressed(KeyEvent e) {
+                if (e.getKeyCode() == KeyEvent.VK_ESCAPE) {
+                    dlg.dispose();
+                }
             }
         });
         /*dlg.addMouseListener(new MouseAdapter(){
@@ -337,30 +376,41 @@ public class MainApplication {
         JPanel dragBar = new JPanel();
         dragBar.setPreferredSize(new Dimension(100, 8));
         dragBar.setCursor(Cursor.getPredefinedCursor(Cursor.MOVE_CURSOR));
-        dragBar.addMouseMotionListener(new MouseMotionAdapter(){
+        dragBar.addMouseMotionListener(new MouseMotionAdapter() {
             private Point last;
-            @Override public void mouseDragged(MouseEvent e) {
+
+            @Override
+            public void mouseDragged(MouseEvent e) {
                 if (last != null) {
                     Point loc = dlg.getLocation();
                     dlg.setLocation(loc.x + e.getX() - last.x, loc.y + e.getY() - last.y);
                 }
             }
-            @Override public void mouseMoved(MouseEvent e) { last = e.getPoint(); }
+
+            @Override
+            public void mouseMoved(MouseEvent e) {
+                last = e.getPoint();
+            }
         });
         dlg.add(dragBar, BorderLayout.NORTH);
 
         //dlg.setVisible(true);
     }
 
-    /***********************
+    /**
+     * *********************
      * IndexManager - handles lucene indexes and metadata per folder
-     ************************/
+     ***********************
+     */
     private static class IndexManager {
+
         private final File indexesRoot; // storage/indexes
 
         IndexManager(File storageRoot) {
             this.indexesRoot = new File(storageRoot, INDEXES_DIRNAME);
-            if (!indexesRoot.exists()) indexesRoot.mkdirs();
+            if (!indexesRoot.exists()) {
+                indexesRoot.mkdirs();
+            }
         }
 
         boolean isIndexed(File folder) {
@@ -374,7 +424,9 @@ public class MainApplication {
                 MessageDigest md = MessageDigest.getInstance("SHA-1");
                 byte[] b = md.digest(folder.getAbsolutePath().getBytes(StandardCharsets.UTF_8));
                 StringBuilder sb = new StringBuilder();
-                for (byte x : b) sb.append(String.format("%02x", x));
+                for (byte x : b) {
+                    sb.append(String.format("%02x", x));
+                }
                 return sb.toString();
             } catch (Exception e) {
                 return Integer.toHexString(folder.getAbsolutePath().hashCode());
@@ -394,7 +446,9 @@ public class MainApplication {
         private Map<String, Long> readMetadata(File folder) {
             Map<String, Long> map = new HashMap<>();
             File m = getMetadataFile(folder);
-            if (!m.exists()) return map;
+            if (!m.exists()) {
+                return map;
+            }
             try (BufferedReader br = new BufferedReader(new FileReader(m))) {
                 String line;
                 while ((line = br.readLine()) != null) {
@@ -427,23 +481,28 @@ public class MainApplication {
                 String ext = getExt(name);
                 return ext != null && IMG_EXT.contains(ext.toLowerCase());
             });
-            if (arr == null) return List.of();
+            if (arr == null) {
+                return List.of();
+            }
             return Arrays.asList(arr);
         }
 
         private static String getExt(String name) {
             int i = name.lastIndexOf('.');
-            if (i < 0) return null;
-            return name.substring(i+1);
+            if (i < 0) {
+                return null;
+            }
+            return name.substring(i + 1);
         }
 
         // search
         List<String> search(File folder, String queryText, int maxResults) throws Exception {
             File idx = getIndexDirForFolder(folder);
-            if (!idx.exists()) return List.of();
+            if (!idx.exists()) {
+                return List.of();
+            }
 
-            try (Directory dir = FSDirectory.open(idx.toPath());
-                 IndexReader reader = DirectoryReader.open(dir)) {
+            try (Directory dir = FSDirectory.open(idx.toPath()); IndexReader reader = DirectoryReader.open(dir)) {
 
                 IndexSearcher searcher = new IndexSearcher(reader);
                 StandardAnalyzer analyzer = new StandardAnalyzer();
@@ -469,10 +528,11 @@ public class MainApplication {
         String getExtractedTextForPath(String path) {
             // find the index that contains this doc by searching all indexes (could be optimized if we tracked map folder->doc)
             File[] idxs = indexesRoot.listFiles(File::isDirectory);
-            if (idxs == null) return null;
+            if (idxs == null) {
+                return null;
+            }
             for (File idx : idxs) {
-                try (Directory dir = FSDirectory.open(idx.toPath());
-                     IndexReader reader = DirectoryReader.open(dir)) {
+                try (Directory dir = FSDirectory.open(idx.toPath()); IndexReader reader = DirectoryReader.open(dir)) {
 
                     IndexSearcher searcher = new IndexSearcher(reader);
                     Term term = new Term("path", path);
@@ -497,13 +557,17 @@ public class MainApplication {
         // - write metadata
         void updateIndex(File folder, ProgressCallback callback, boolean forceReindex) throws Exception {
             File idxDir = getIndexDirForFolder(folder);
-            if (!idxDir.exists()) idxDir.mkdirs();
+            if (!idxDir.exists()) {
+                idxDir.mkdirs();
+            }
 
             Map<String, Long> oldMeta = readMetadata(folder);
             List<File> currentFiles = listImageFiles(folder);
 
             Map<String, Long> newMeta = new HashMap<>();
-            for (File f : currentFiles) newMeta.put(f.getAbsolutePath(), f.lastModified());
+            for (File f : currentFiles) {
+                newMeta.put(f.getAbsolutePath(), f.lastModified());
+            }
 
             // detect removed
             Set<String> removed = oldMeta.keySet().stream()
@@ -539,7 +603,7 @@ public class MainApplication {
                     int total = toIndex.size();
                     int done = 0;
                     for (File f : toIndex) {
-                        callback.message("OCR: " + f.getName() + " (" + (done+1) + "/" + total + ")");
+                        callback.message("OCR: " + f.getName() + " (" + (done + 1) + "/" + total + ")");
                         try {
                             // do OCR
                             String text = tess.doOCR(f);
@@ -557,7 +621,7 @@ public class MainApplication {
                             e.printStackTrace();
                         }
                         done++;
-                        int prog = total == 0 ? 100 : (int)((done / (double) total) * 100);
+                        int prog = total == 0 ? 100 : (int) ((done / (double) total) * 100);
                         callback.progress(prog);
                     }
 
@@ -574,14 +638,19 @@ public class MainApplication {
 
     // simple callback for progress updates
     private interface ProgressCallback {
+
         void progress(int percent);
+
         void message(String msg);
     }
 
-    /*************************
+    /**
+     * ***********************
      * IndexWorker - SwingWorker wrapper that calls IndexManager.updateIndex
-     *************************/
+     ************************
+     */
     private class IndexWorker extends SwingWorker<Void, Void> {
+
         private final File folder;
         private final IndexManager manager;
         private final boolean force;
@@ -600,6 +669,7 @@ public class MainApplication {
                     setProgress(percent);
                     firePropertyChange("progress", null, percent);
                 }
+
                 @Override
                 public void message(String msg) {
                     firePropertyChange("message", null, msg);
@@ -610,12 +680,18 @@ public class MainApplication {
         }
     }
 
-    /*****************
-     * WrapLayout - small helper layout to wrap thumbnails
-     * Source (lightly adapted) - allows components to wrap like a flow
-     *****************/
+    /**
+     * ***************
+     * WrapLayout - small helper layout to wrap thumbnails Source (lightly
+     * adapted) - allows components to wrap like a flow
+     ****************
+     */
     public static class WrapLayout extends FlowLayout {
-        public WrapLayout() { super(); }
+
+        public WrapLayout() {
+            super();
+        }
+
         public WrapLayout(int align, int hgap, int vgap) {
             super(align, hgap, vgap);
         }
@@ -635,7 +711,9 @@ public class MainApplication {
         private Dimension layoutSize(Container target, boolean preferred) {
             synchronized (target.getTreeLock()) {
                 int targetWidth = target.getWidth();
-                if (targetWidth == 0) targetWidth = Integer.MAX_VALUE;
+                if (targetWidth == 0) {
+                    targetWidth = Integer.MAX_VALUE;
+                }
 
                 int hgap = getHgap();
                 int vgap = getVgap();
@@ -650,7 +728,9 @@ public class MainApplication {
 
                 for (int i = 0; i < nmembers; i++) {
                     Component m = target.getComponent(i);
-                    if (!m.isVisible()) continue;
+                    if (!m.isVisible()) {
+                        continue;
+                    }
                     Dimension d = preferred ? m.getPreferredSize() : m.getMinimumSize();
                     if (rowWidth + d.width > maxWidth) {
                         addRow(dim, rowWidth, rowHeight);
@@ -669,7 +749,9 @@ public class MainApplication {
 
         private void addRow(Dimension dim, int rowWidth, int rowHeight) {
             dim.width = Math.max(dim.width, rowWidth);
-            if (dim.height > 0) dim.height += getVgap();
+            if (dim.height > 0) {
+                dim.height += getVgap();
+            }
             dim.height += rowHeight;
         }
     }
